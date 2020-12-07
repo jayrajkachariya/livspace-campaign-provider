@@ -265,6 +265,7 @@ function getGiftLottieIcon(lottieConfig) {
   let lottiePlayerWrapper = document.createElement("button");
   lottiePlayerWrapper.classList.add("lottie-player-wrapper");
   lottiePlayerWrapper.style.background = "transparent";
+  lottiePlayerWrapper.style.zIndex = 1;
   lottiePlayerWrapper.appendChild(lottiePlayer);
   return lottiePlayerWrapper;
 }
