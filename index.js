@@ -8,8 +8,7 @@ const campaignModalIconBottomFixedID = "campaign-modal-icon-bottom-fixed";
 const lottiePlayerID = "lottie-player";
 const logoContainerID = "logo-container";
 let isModalOpenend = false;
-
-let logo = getLogo();
+let logo;
 
 // Modal wrapper
 let campaignModalWrapper = document.createElement("div");
@@ -72,11 +71,10 @@ function getLogo() {
   let logoElement = document.getElementsByTagName("img");
   for (let i = 0; i < logoElement.length; i++) {
     if (logoElement[i].alt === "logo") {
-      return logoElement[i];
+      logo = logoElement[i];
       break;
     }
   }
-  return null;
 }
 
 // Top left corner logo animation
@@ -128,7 +126,7 @@ function addBodyBackgroundAnimation(background_url) {
 
 // Finding campaign through api call
 async function findCampaign(origin = window.location.origin) {
-  if (typeof origin !== "string" && origin?.theme?.isCustome) {
+  if (typeof origin !== "string" && origin?.theme?.isCustom) {
     const {
       theme: { background_url, gift_url: gift_icon_url, logo_url },
     } = origin;
@@ -141,7 +139,7 @@ async function findCampaign(origin = window.location.origin) {
     }
 
     if (gift_icon_url.includes(".json")) {
-      loadCampaign(gift_icon_url, gift_url, destination_url);
+      loadCampaign(gift_icon_url);
       window.addEventListener("scroll", hideCampaignBottomIconOnWindowScroll);
     }
   } else {
@@ -289,15 +287,6 @@ function getLottiePlayer({
   return lottiePlayer;
 }
 
-// Importing CSS
-function importCSS() {
-  const cssLink = document.createElement("link");
-  cssLink.rel = "stylesheet";
-  cssLink.type = "text/css";
-  cssLink.href = "index.css";
-  document.head.appendChild(cssLink);
-}
-
 // Adding lottie script from CDN
 async function importLottie() {
   const lottiePlayer = document.createElement("script");
@@ -345,13 +334,13 @@ function stopCampaignAnimation() {
   document.body.style.backgroundImage = "";
   document.getElementById(campaignModalIconBottomFixedID).style.display =
     "none";
-  campaignModalIconStatic.style.display = "none";
+  campaignModalIconStatic.style.visibility = "hidden";
 }
 
 // Initialization of script
 function initiateLivspaceThemeChannel(origin) {
-  importCSS();
   importLottie();
+  getLogo();
   findCampaign(origin);
 }
 
