@@ -337,10 +337,10 @@ function stopCampaignAnimation() {
 }
 
 // Initialization of script
-function initiateLivspaceThemeChannel(origin) {
+function initiateLivspaceThemeChannel() {
   importLottie();
   getLogo();
-  findCampaign(origin);
+  findCampaign();
 }
 
 window.previewTheme = findCampaign;
