@@ -9,6 +9,8 @@ const lottiePlayerID = "lottie-player";
 const logoContainerID = "logo-container";
 let isModalOpenend = false;
 
+let logo = getLogo();
+
 // Modal wrapper
 let campaignModalWrapper = document.createElement("div");
 campaignModalWrapper.id = campaignModalWrapperID;
@@ -65,20 +67,22 @@ window.onclick = function (event) {
   }
 };
 
-// Top left corner logo animation
-function addCampaignWrapper(logo_url) {
+// Get logo
+function getLogo() {
   let logoElement = document.getElementsByTagName("img");
-  let logo;
   for (let i = 0; i < logoElement.length; i++) {
     if (logoElement[i].alt === "logo") {
-      logo = logoElement[i];
+      return logoElement[i];
       break;
     }
   }
+  return null;
+}
+
+// Top left corner logo animation
+function addCampaignWrapper(logo_url) {
   if (logo) {
     let parent = logo.parentNode;
-    let wrapper = document.createElement("div");
-    wrapper.id = logoContainerID;
     let logoLottiePlayer = getLottiePlayer({
       src: logo_url,
       style: "width: 80px;height: 34px;transform: scale(3.5);float: right;",
@@ -86,10 +90,15 @@ function addCampaignWrapper(logo_url) {
       autoplay: true,
       speed: 0.8,
     });
-
     let isLogoMounted = true;
+
+    let wrapper = document.createElement("div");
+    wrapper.id = logoContainerID;
     wrapper.style.animationDuration = "3s";
     wrapper.classList.add("animate-fade-in-out");
+
+    parent.replaceChild(wrapper, logo);
+    wrapper.appendChild(logo);
 
     wrapper.addEventListener("animationiteration", function () {
       wrapper.classList.remove("animate-fade-in-out");
@@ -105,9 +114,6 @@ function addCampaignWrapper(logo_url) {
       void this.offsetWidth;
       wrapper.classList.add("animate-fade-in-out");
     });
-
-    parent.replaceChild(wrapper, logo);
-    wrapper.appendChild(logo);
   }
 }
 
@@ -121,31 +127,40 @@ function addBodyBackgroundAnimation(background_url) {
 }
 
 // Finding campaign through api call
-function findCampaign(
-  // origin = window.location.origin || "https://www.livspace.com"
-  origin = "https://www.livspace.com"
-) {
-  fetch(
-    `https://campaign-service.herokuapp.com/api/v1/campaigns?source_url=${origin}&status=active`
-  )
-    .then((response) => response.json())
-    .then((response) => {
-      if (
-        response.status === "success" &&
-        response.data &&
-        response.data.length
-      ) {
-        console.log("response", response);
-        const {
-          gift_required,
-          destination_url,
-          gift_url,
-          theme: { background_url, gift_url: gift_icon_url, logo_url },
-        } = response.data[0];
+async function findCampaign(origin = window.location.origin) {
+  if (typeof origin !== "string" && origin?.theme?.isCustome) {
+    const {
+      theme: { background_url, gift_url: gift_icon_url, logo_url },
+    } = origin;
+    if (background_url && background_url.includes(".gif")) {
+      addBodyBackgroundAnimation(background_url);
+    }
 
-        if (gift_required) {
-          let lottiePlugin = document.getElementById(lottiePlayerID);
-          if (lottiePlugin && gift_icon_url && gift_url && destination_url) {
+    if (logo_url && logo_url.includes(".json")) {
+      addCampaignWrapper(logo_url);
+    }
+
+    if (gift_icon_url.includes(".json")) {
+      loadCampaign(gift_icon_url, gift_url, destination_url);
+      window.addEventListener("scroll", hideCampaignBottomIconOnWindowScroll);
+    }
+  } else {
+    let response = await fetch(
+      `https://campaign-service.herokuapp.com/api/v1/campaigns?source_url=${origin}&status=active`
+    );
+    let data = await response.json();
+    if (data.status === "success" && data.data && data.data.length) {
+      const {
+        gift_required,
+        destination_url,
+        gift_url,
+        theme: { background_url, gift_url: gift_icon_url, logo_url },
+      } = data.data[0];
+
+      if (gift_required) {
+        let lottiePlugin = document.getElementById(lottiePlayerID);
+        if (lottiePlugin && gift_icon_url && gift_url && destination_url) {
+          if (gift_icon_url.includes(".json")) {
             loadCampaign(gift_icon_url, gift_url, destination_url);
             window.addEventListener(
               "scroll",
@@ -153,37 +168,31 @@ function findCampaign(
             );
           }
         }
-
-        if (background_url) {
-          console.log("background_url", background_url);
-          addBodyBackgroundAnimation(background_url);
-        }
-
-        if (logo_url) {
-          addCampaignWrapper(logo_url);
-        }
       }
-    });
+
+      if (background_url && background_url.includes(".gif")) {
+        addBodyBackgroundAnimation(background_url);
+      }
+
+      if (logo_url && logo_url.includes(".json")) {
+        addCampaignWrapper(logo_url);
+      }
+    }
+  }
 }
 
 // Loading campaign if any gift offer available
 function loadCampaign(giftIconUrl, campaignImageURL, campaignDestinationURL) {
-  addCampaignIconBottomFixed(
-    giftIconUrl,
-    campaignImageURL,
-    campaignDestinationURL
-  );
-  campaignModalButton.onclick = function () {
-    window.open(campaignDestinationURL);
-  };
+  addCampaignIconBottomFixed(giftIconUrl, campaignImageURL);
+  if (campaignDestinationURL) {
+    campaignModalButton.onclick = function () {
+      window.open(campaignDestinationURL);
+    };
+  }
 }
 
 // Adding campaign gift buttons static top in nav-bar and dynamic bottom fixed
-function addCampaignIconBottomFixed(
-  giftIconUrl,
-  campaignImageURL,
-  campaignDestinationURL
-) {
+function addCampaignIconBottomFixed(giftIconUrl, campaignImageURL) {
   // dynamic gift icon at bottom fix
   let campaignModalIconBottomFixed = document.createElement("div");
   campaignModalIconBottomFixed.id = campaignModalIconBottomFixedID;
@@ -197,9 +206,13 @@ function addCampaignIconBottomFixed(
     speed: 0.8,
   });
 
-  giftLottieIcon.onclick = function () {
-    openCampaignModal(campaignImageURL);
-  };
+  if (campaignImageURL) {
+    giftLottieIcon.onclick = function () {
+      isModalOpenend = true;
+      openCampaignModal(campaignImageURL);
+      hideDynamicCampaignIcon();
+    };
+  }
 
   campaignModalIconBottomFixed.appendChild(giftLottieIcon);
   document.body.appendChild(campaignModalIconBottomFixed);
@@ -213,9 +226,13 @@ function addCampaignIconBottomFixed(
     speed: 0.8,
   });
 
-  giftLottieIconStatic.onclick = function () {
-    openCampaignModal(campaignImageURL);
-  };
+  if (campaignImageURL) {
+    giftLottieIconStatic.onclick = function () {
+      isModalOpenend = true;
+      openCampaignModal(campaignImageURL);
+      hideDynamicCampaignIcon();
+    };
+  }
 
   let firstMarginAutoElement = document.getElementsByClassName("ml-auto")[0];
 
@@ -289,22 +306,46 @@ async function importLottie() {
     "https://unpkg.com/@lottiefiles/lottie-player@0.4.0/dist/lottie-player.js";
   lottiePlayer.id = lottiePlayerID;
   await document.head.appendChild(lottiePlayer);
-  await addCampaignWrapper();
 }
 
 // Switch to static and dynamic gift icons, respectively on nav-bar and bottom fixed
 function hideCampaignBottomIconOnWindowScroll() {
-  if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-    document.getElementById(campaignModalIconBottomFixedID).style.display =
-      "none";
-    campaignModalIconStatic.style.height = "auto";
-    campaignModalIconStatic.style.visibility = "visible";
+  if (isModalOpenend) {
+    hideDynamicCampaignIcon();
+  } else if (
+    document.body.scrollTop > 50 ||
+    document.documentElement.scrollTop > 50
+  ) {
+    hideDynamicCampaignIcon();
   } else {
     document.getElementById(campaignModalIconBottomFixedID).style.display =
       "block";
     campaignModalIconStatic.style.height = "54px";
     campaignModalIconStatic.style.visibility = "hidden";
   }
+}
+
+// To hide bottom dynamic icon
+function hideDynamicCampaignIcon() {
+  document.getElementById(campaignModalIconBottomFixedID).style.display =
+    "none";
+  campaignModalIconStatic.style.height = "auto";
+  campaignModalIconStatic.style.visibility = "visible";
+}
+
+// To force stop animation
+function stopCampaignAnimation() {
+  let logoContainer = document.getElementById(logoContainerID);
+  if (logoContainer.firstChild != logo) {
+    logoContainer.replaceChild(logo, logoContainer.firstChild);
+  }
+  logoContainer.removeAttribute("class");
+  logoContainer.removeAttribute("style");
+  document.body.style.backgroundColor = "#fff";
+  document.body.style.backgroundImage = "";
+  document.getElementById(campaignModalIconBottomFixedID).style.display =
+    "none";
+  campaignModalIconStatic.style.display = "none";
 }
 
 // Initialization of script
@@ -316,14 +357,5 @@ function initiateLivspaceThemeChannel(origin) {
 
 // Call of Initialization of script!
 initiateLivspaceThemeChannel();
-
-function stopAnimation() {
-  document
-    .getElementById(logoContainerID)
-    .classList.remove("animate-fade-in-out");
-}
-
-setTimeout(() => {
-  console.log("stopAnimation();");
-  stopAnimation();
-}, 10000);
+window.previewTheme = findCampaign;
+window.stopPreviewTheme = stopCampaignAnimation;
