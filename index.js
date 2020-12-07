@@ -347,4 +347,4 @@ window.previewTheme = findCampaign;
 window.stopPreviewTheme = stopCampaignAnimation;
 
 // Call of Initialization of script!
-window.addEventListener("DOMContentLoaded", initiateLivspaceThemeChannel);
+window.addEventListener("load", initiateLivspaceThemeChannel);
