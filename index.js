@@ -332,8 +332,7 @@ function stopCampaignAnimation() {
   logoContainer.removeAttribute("style");
   document.body.style.backgroundColor = "#fff";
   document.body.style.backgroundImage = "";
-  document.getElementById(campaignModalIconBottomFixedID).style.display =
-    "none";
+  document.getElementById(campaignModalIconBottomFixedID).remove();
   campaignModalIconStatic.style.visibility = "hidden";
 }
 
@@ -344,7 +343,8 @@ function initiateLivspaceThemeChannel(origin) {
   findCampaign(origin);
 }
 
-// Call of Initialization of script!
-initiateLivspaceThemeChannel();
 window.previewTheme = findCampaign;
 window.stopPreviewTheme = stopCampaignAnimation;
+
+// Call of Initialization of script!
+window.addEventListener("DOMContentLoaded", initiateLivspaceThemeChannel);
