@@ -264,6 +264,7 @@ function getGiftLottieIcon(lottieConfig) {
   let lottiePlayer = getLottiePlayer(lottieConfig);
   let lottiePlayerWrapper = document.createElement("button");
   lottiePlayerWrapper.classList.add("lottie-player-wrapper");
+  lottiePlayerWrapper.style.background = "transparent";
   lottiePlayerWrapper.appendChild(lottiePlayer);
   return lottiePlayerWrapper;
 }
@@ -330,7 +331,6 @@ function stopCampaignAnimation() {
   }
   logoContainer.removeAttribute("class");
   logoContainer.removeAttribute("style");
-  document.body.style.backgroundColor = "#fff";
   document.body.style.backgroundImage = "";
   document.getElementById(campaignModalIconBottomFixedID).remove();
   campaignModalIconStatic.style.visibility = "hidden";
