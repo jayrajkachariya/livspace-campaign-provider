@@ -119,9 +119,8 @@ function addCampaignWrapper(logo_url) {
 function addBodyBackgroundAnimation(background_url) {
   document.body.style.backgroundImage = `url(${background_url})`;
   setTimeout(() => {
-    document.body.style.backgroundColor = "#fff";
     document.body.style.backgroundImage = "";
-  }, 10000);
+  }, 20000);
 }
 
 // Finding campaign through api call
@@ -195,6 +194,7 @@ function addCampaignIconBottomFixed(giftIconUrl, campaignImageURL) {
   let campaignModalIconBottomFixed = document.createElement("div");
   campaignModalIconBottomFixed.id = campaignModalIconBottomFixedID;
   campaignModalIconBottomFixed.classList.add("campaign-icon-fixed-bottom");
+  campaignModalIconBottomFixed.style.zIndex = 1;
 
   let giftLottieIcon = getGiftLottieIcon({
     src: giftIconUrl,
